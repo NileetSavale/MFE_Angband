@@ -7,6 +7,7 @@ class MonsterParser:
     def __init__(self, filepath):
         self.filepath = filepath
         self.monsters = self.load_monsters()
+        self.original_attributes = {}  # ✅ Ensure this is defined here
 
     def backup_file(self):
         """ Creates a backup of the existing monster.txt before modifying it. """
@@ -17,8 +18,8 @@ class MonsterParser:
     def load_monsters(self):
         """ Reads monster.txt and parses monsters into a dictionary while handling duplicate attributes. """
         monsters = {}
+        original_attributes = {}  # ✅ Ensure original attributes are properly tracked
         current_monster = None
-        original_attributes = {}  # Keep track of attributes per monster
 
         with open(self.filepath, "r", encoding="utf-8") as file:
             for line in file:
@@ -31,8 +32,8 @@ class MonsterParser:
                 # Detect new monster entry
                 if line.startswith("name:"):
                     current_monster = line.split(":", 1)[1].strip()
-                    monsters[current_monster] = {}
-                    original_attributes[current_monster] = set()  # Track what was present
+                    monsters[current_monster] = {"original_name": current_monster}  # ✅ Store original name
+                    original_attributes[current_monster] = set()  # ✅ Track original attributes
 
                 elif current_monster:
                     if ":" in line:
@@ -40,10 +41,10 @@ class MonsterParser:
                         key = key.strip()
                         value = value.strip()
 
-                        # Track that this attribute was originally in the file
+                        # ✅ Track attribute existence
                         original_attributes[current_monster].add(key)
 
-                        # If the key already exists, store values as a list
+                        # ✅ Preserve multiple occurrences of attributes like `blows`, `flags`
                         if key in monsters[current_monster]:
                             if isinstance(monsters[current_monster][key], list):
                                 monsters[current_monster][key].append(value)
@@ -54,25 +55,44 @@ class MonsterParser:
                     else:
                         print(f"⚠️ Warning: Skipping malformed line -> {line}")
 
-        # Store original attribute presence for validation in the editor
-        self.original_attributes = original_attributes
+        self.original_attributes = original_attributes  # ✅ Store tracking data globally
         return monsters
 
+    def rename_monster(self, old_name, new_name):
+        """ ✅ Handles renaming a monster while preserving attributes. """
+        if new_name in self.monsters:
+            print(f"⚠️ Error: A monster named '{new_name}' already exists. Choose another name.")
+            return False
+
+        if old_name in self.monsters:
+            # ✅ Transfer data to the new name
+            self.monsters[new_name] = self.monsters.pop(old_name)
+            self.monsters[new_name]["original_name"] = new_name  # ✅ Update the stored name
+            self.original_attributes[new_name] = self.original_attributes.pop(old_name)  # ✅ Ensure attribute tracking updates
+
+            print(f"✅ Monster '{old_name}' successfully renamed to '{new_name}'!")
+            return True
+        else:
+            print(f"❌ Error: Monster '{old_name}' not found in original attributes.")
+            return False
+
     def save_monsters(self):
-        """ Saves modified monsters back to monster.txt while preserving original format. """
+        """ ✅ Ensures renamed monsters retain all attributes and writes everything properly. """
         self.backup_file()
 
         with open(self.filepath, "w", encoding="utf-8") as file:
             for name, attributes in self.monsters.items():
-                file.write(f"name:{name}\n")
+                file.write(f"name:{name}\n")  # ✅ Ensure updated name is used
+
                 for key, value in attributes.items():
-                    if key in self.original_attributes.get(name, []):  # Only write original attributes
+                    if key != "original_name":  # ✅ Avoid writing tracking attribute
                         if isinstance(value, list):
                             for item in value:
-                                file.write(f"{key}:{item}\n")
+                                file.write(f"{key}:{item}\n")  # ✅ Write list attributes separately
                         else:
-                            file.write(f"{key}:{value}\n")
-                file.write("\n")  # Separate monsters
+                            file.write(f"{key}:{value}\n")  # ✅ Write single attributes
+
+                file.write("\n")  # ✅ Separate monsters properly
 
         logging.info(f"✅ Changes saved to {self.filepath}")
         print(f"\n✅ Changes saved to {self.filepath}, and logged in logs/mfe_changes.log")
