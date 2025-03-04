@@ -214,13 +214,12 @@ class MonsterEditor:
                         # ✅ Method field is required
                         while True:
                             new_method = input("Enter new blow method: ").strip()
-                            if not new_method:
-                                print("⚠️ Blow method is required!")
-                                continue  # Keep asking until a valid method is entered
-
+                            
                             if new_method not in self.game_data_loader.blow_methods:
                                 print("⚠️ Invalid blow method.")
-                                break
+                                continue  # Retry input
+
+                            break  # Exit loop when a valid method is entered
 
                         # ✅ Allow empty values for effect and power
                         new_effect = input("Enter new blow effect (Press Enter to leave empty): ").strip()
