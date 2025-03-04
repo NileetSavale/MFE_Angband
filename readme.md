@@ -12,6 +12,13 @@ Man File can be found in the man/mfe.1 and can be run using command
 
 ---
 
+Test Cases are in the Test-Cases folder
+
+---
+
+Time Spent pdf is visible in the main folder
+
+---
 ## Installation Steps
 
 1. Open the following link on GitHub: [Monster File Editor Repository](https://github.iu.edu/nsavale/mfe_angband)
