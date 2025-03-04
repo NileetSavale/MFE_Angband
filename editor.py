@@ -103,8 +103,7 @@ class MonsterEditor:
             # ✅ Exclude 'flags' and 'blow' from general attribute handling
             # ✅ Ensure 'flags' is handled separately but 'blow' continues to its section
             if key == "flags":
-                print(f"⚠️ '{key}' needs to be edited separately.")
-                continue
+                pass
             elif key == "blow":
                 pass  # Allow execution to continue to the blow handling section below
 
@@ -220,15 +219,8 @@ class MonsterEditor:
                                 continue  # Keep asking until a valid method is entered
 
                             if new_method not in self.game_data_loader.blow_methods:
-                                suggestion = self.suggest_correction(new_method, self.game_data_loader.blow_methods)
-                                if suggestion:
-                                    confirm = input(f"Did you mean '{suggestion}'? (Y/N): ").strip().lower()
-                                    if confirm == "y":
-                                        new_method = suggestion
-                                    else:
-                                        print("⚠️ Invalid method, please enter a valid blow method.")
-                                        continue
-                            break  # Exit loop once a valid method is entered
+                                print("⚠️ Invalid blow method.")
+                                break
 
                         # ✅ Allow empty values for effect and power
                         new_effect = input("Enter new blow effect (Press Enter to leave empty): ").strip()
