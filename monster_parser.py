@@ -38,7 +38,7 @@ class MonsterParser:
                         key, value = line.split(":", 1)
                         key = key.strip()
                         value = value.strip()
-
+                        
                         # ✅ Ensure flags are stored and tracked correctly
                         if key == "flags":
                             if " | " in value:
@@ -64,6 +64,7 @@ class MonsterParser:
                                 monsters[current_monster][key].append(value)
                             else:
                                 monsters[current_monster][key] = [monsters[current_monster][key], value]
+                                
                         else:
                             monsters[current_monster][key] = value
         

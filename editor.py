@@ -79,7 +79,7 @@ class MonsterEditor:
                         monster = self.monster_parser.monsters[name]  # ✅ Update monster reference
                 continue  # ✅ Ensures the loop continues instead of stopping
 
-            if key not in monster:
+            if key not in monster and key not in self.monster_parser.original_attributes.get(name, []):
                 print(f"❌ Invalid attribute '{key}'! Try again.")
                 continue  
 
@@ -87,7 +87,7 @@ class MonsterEditor:
 
 
             # ✅ Handle numerical inputs properly
-            if key in ["speed", "hit-points", "depth", "rarity", "experience", "armor-class"]:
+            if key in ["speed", "hit-points", "depth", "rarity", "experience", "armor-class", "smell", "hearing", "sleepiness"]:
                 new_value = input(f"Enter new value for {key} (Current: '{old_value_str}', press Enter to keep): ").strip()
                 if new_value == "":
                     print(f"🔄 Keeping old value: {old_value_str}")
@@ -97,6 +97,26 @@ class MonsterEditor:
                     monster[key] = validated_value
                     print(f"✅ Updated '{key}': {monster[key]}")
                 continue
+
+            # ✅ Handle all other attributes (e.g., 'color', 'symbol', etc.)
+            new_value = input(f"Enter new value for {key} (Current: '{old_value_str}', press Enter to keep): ").strip()
+            if new_value == "":
+                print(f"🔄 Keeping old value: {old_value_str}")
+            else:
+                monster[key] = new_value
+                print(f"✅ Updated '{key}': {monster[key]}")
+
+                        # ✅ Ensure 'color' is editable even if missing
+            if key == "color":
+                print(f"\n📌 Editing color (Current: '{monster.get(key, 'N/A')}')")  # Show current color or 'N/A' if missing
+                new_color = input("Enter new color (Press Enter to keep current): ").strip()
+
+                if new_color == "":
+                    print(f"🔄 Keeping old color: {monster.get(key, 'N/A')}")
+                else:
+                    monster[key] = new_color
+                    print(f"✅ Updated 'color': {monster[key]}")
+                continue  # ✅ Ensures loop continues instead of stopping
 
             # ✅ Handle `flags` with validation
             if key == "flags":
@@ -158,7 +178,7 @@ class MonsterEditor:
                         parts = blows[index].split(":")
                         method = parts[0] if len(parts) > 0 else "NONE"
                         effect = parts[1] if len(parts) > 1 else "NONE"
-                        power = parts[2] if len(parts) > 2 else "1d1"
+                        power = parts[2] if len(parts) > 2 else ""
 
                         # ✅ Validate `blow_methods`
                         new_method = input(f"Enter new method (Current: '{method}', press Enter to keep): ").strip() or method
@@ -180,31 +200,47 @@ class MonsterEditor:
                             print("⚠️ You cannot add more than 4 blows.")
                             continue
 
-                        new_method = input("Enter new blow method: ").strip()
-                        if new_method not in self.game_data_loader.blow_methods:
-                            suggestion = self.suggest_correction(new_method, self.game_data_loader.blow_methods)
-                            if suggestion:
-                                confirm = input(f"Did you mean '{suggestion}'? (Y/N): ").strip().lower()
-                                if confirm == "y":
-                                    new_method = suggestion
-                            else:
-                                print("⚠️ Invalid method, please enter a valid blow method.")
-                                continue
+                        # ✅ Method field is required
+                        while True:
+                            new_method = input("Enter new blow method: ").strip()
+                            if not new_method:
+                                print("⚠️ Blow method is required!")
+                                continue  # Keep asking until a valid method is entered
 
-                        new_effect = input("Enter new blow effect: ").strip()
-                        if new_effect not in self.game_data_loader.blow_effects:
+                            if new_method not in self.game_data_loader.blow_methods:
+                                suggestion = self.suggest_correction(new_method, self.game_data_loader.blow_methods)
+                                if suggestion:
+                                    confirm = input(f"Did you mean '{suggestion}'? (Y/N): ").strip().lower()
+                                    if confirm == "y":
+                                        new_method = suggestion
+                                    else:
+                                        print("⚠️ Invalid method, please enter a valid blow method.")
+                                        continue
+                            break  # Exit loop once a valid method is entered
+
+                        # ✅ Allow empty values for effect and power
+                        new_effect = input("Enter new blow effect (Press Enter to leave empty): ").strip()
+                        if new_effect and new_effect not in self.game_data_loader.blow_effects:
                             suggestion = self.suggest_correction(new_effect, self.game_data_loader.blow_effects)
                             if suggestion:
                                 confirm = input(f"Did you mean '{suggestion}'? (Y/N): ").strip().lower()
                                 if confirm == "y":
                                     new_effect = suggestion
-                            else:
-                                print("⚠️ Invalid effect, please enter a valid blow effect.")
-                                continue
+                                else:
+                                    print("⚠️ Invalid effect, leaving empty.")
+                                    new_effect = ""  # Keep empty if invalid
 
-                        new_power = input("Enter new blow power: ").strip()
-                        blows.append(f"{new_method}:{new_effect}:{new_power}")
-                        print(f"✅ Added new blow: {new_method}:{new_effect}:{new_power}")
+                        new_power = input("Enter new blow power (Press Enter to leave empty): ").strip()
+
+                        # ✅ Format correctly, ensuring no extra colons
+                        blow_entry = f"{new_method}"
+                        if new_effect:
+                            blow_entry += f":{new_effect}"
+                        if new_power:
+                            blow_entry += f":{new_power}"
+
+                        blows.append(blow_entry)
+                        print(f"✅ Added new blow: {blow_entry}")
 
                     elif choice == "3":
                         if not blows:
