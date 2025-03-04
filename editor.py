@@ -99,12 +99,24 @@ class MonsterEditor:
                 continue
 
             # ✅ Handle all other attributes (e.g., 'color', 'symbol', etc.)
-            new_value = input(f"Enter new value for {key} (Current: '{old_value_str}', press Enter to keep): ").strip()
-            if new_value == "":
-                print(f"🔄 Keeping old value: {old_value_str}")
+            # new_value = input(f"Enter new value for {key} (Current: '{old_value_str}', press Enter to keep): ").strip()
+            # ✅ Exclude 'flags' and 'blow' from general attribute handling
+            # ✅ Ensure 'flags' is handled separately but 'blow' continues to its section
+            if key == "flags":
+                print(f"⚠️ '{key}' needs to be edited separately.")
+                continue
+            elif key == "blow":
+                pass  # Allow execution to continue to the blow handling section below
+
+
+            # ✅ Handle all other attributes (e.g., 'color', 'symbol', etc.)
             else:
-                monster[key] = new_value
-                print(f"✅ Updated '{key}': {monster[key]}")
+                new_value = input(f"Enter new value for {key} (Current: '{old_value_str}', press Enter to keep): ").strip()
+                if new_value == "":
+                    print(f"🔄 Keeping old value: {old_value_str}")
+                else:
+                    monster[key] = new_value
+                    print(f"✅ Updated '{key}': {monster[key]}")
 
                         # ✅ Ensure 'color' is editable even if missing
             if key == "color":
