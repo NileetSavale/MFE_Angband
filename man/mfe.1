@@ -1,0 +1,52 @@
+.TH MFE 1 "March 2025" "Version 1.0" "Monster File Editor Manual"
+.SH NAME
+mfe \- Monster File Editor for Angband monster files
+.SH SYNOPSIS
+.B python3 mfe.py
+
+The program is a command-line tool that helps users edit the attributes of any monster they choose. 
+The user needs to provide the path to the `monster.txt` file and the path to the `gamedata` directory. 
+After that, the program guides the user through modifying monster attributes interactively.
+
+.SH DESCRIPTION
+Monster File Editor (MFE) is a command-line tool designed to assist users in editing attributes of monsters 
+from the popular game Angband.
+
+The program (`mfe.py`) works by:
+- Loading the `monster.txt` file using the `MonsterParser` class.
+- Loading additional game data from the `gamedata` directory using the `GameDataLoader` class.
+- Providing an interactive prompt via `MonsterEditor` to allow users to edit attributes such as:
+    - Color
+    - Health
+    - Speed
+    - And more.
+
+All changes are saved back to `monster.txt`.
+
+The tool simplifies monster customization and ensures correct formatting and saving of the monster file.
+
+.SH OPTIONS
+This program does not take any command-line options other than:
+.TP
+\fB\-\-help\fR
+Displays a brief usage message and exits (this can be added in future versions).
+
+.SH EXAMPLES
+To run the program:
+.EX
+$ python3 mfe.py
+.EE
+
+You will be prompted to enter:
+- Path to `monster.txt`
+- Path to `gamedata` directory
+- Name of the monster to edit
+
+Once you follow the prompts, the program will guide you through editing the monster's attributes interactively.
+
+.SH FILES
+- monster.txt: Main file where monster data is stored.
+- gamedata/: Folder containing necessary game data files.
+
+.SH AUTHOR
+Team 20: Sierra Napieralski, Hannah Lengacher, Akhil Kashyap, Bryan Akin, Nileet Savale
