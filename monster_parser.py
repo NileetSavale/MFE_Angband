@@ -4,10 +4,12 @@ import logging
 logging.basicConfig(filename="logs/mfe_changes.log", level=logging.INFO, format="%(asctime)s - %(message)s")
 
 class MonsterParser:
+    valid_flags = set()  # ✅ Track valid flags
+
     def __init__(self, filepath):
         self.filepath = filepath
         self.monsters = self.load_monsters()
-        self.original_attributes = {name: set(attrs.keys()) for name, attrs in self.monsters.items()}  # ✅ Track original attributes
+        self.original_attributes = {name: set(attrs.keys()) for name, attrs in self.monsters.items()}  
 
     def backup_file(self):
         """ Creates a backup of the existing monster.txt before modifying it. """
@@ -30,23 +32,42 @@ class MonsterParser:
                 if line.startswith("name:"):
                     current_monster = line.split(":", 1)[1].strip()
                     monsters[current_monster] = {"original_name": current_monster}
-
+                
                 elif current_monster:
                     if ":" in line:
                         key, value = line.split(":", 1)
                         key = key.strip()
                         value = value.strip()
 
-                        if key in monsters[current_monster]:
+                        # ✅ Ensure flags are stored and tracked correctly
+                        if key == "flags":
+                            if " | " in value:
+                                for flag in value.split(" | "):
+                                    self.valid_flags.add(flag)
+                            else:
+                                self.valid_flags.add(value)
+                            
+                            if key in monsters[current_monster]:
+                                monsters[current_monster][key].append(value)
+                            else:
+                                monsters[current_monster][key] = [value]
+                        
+                        elif key == "friends":
+                            # ✅ Ensure friends are always stored as a list
+                            if key in monsters[current_monster]:
+                                monsters[current_monster][key].append(value)
+                            else:
+                                monsters[current_monster][key] = [value]
+                        
+                        elif key in monsters[current_monster]:
                             if isinstance(monsters[current_monster][key], list):
                                 monsters[current_monster][key].append(value)
                             else:
                                 monsters[current_monster][key] = [monsters[current_monster][key], value]
                         else:
                             monsters[current_monster][key] = value
-                    else:
-                        print(f"⚠️ Warning: Skipping malformed line -> {line}")
-
+        
+        print(f"Valid flags: {self.valid_flags}")  # ✅ Print all valid flags
         return monsters
 
     def rename_monster(self, old_name, new_name):
@@ -61,8 +82,7 @@ class MonsterParser:
 
         self.monsters[new_name] = self.monsters.pop(old_name)
         self.monsters[new_name]["original_name"] = new_name  
-        
-        # ✅ Ensure the `original_attributes` updates correctly
+
         if old_name in self.original_attributes:
             self.original_attributes[new_name] = self.original_attributes.pop(old_name)
 
@@ -74,16 +94,16 @@ class MonsterParser:
     def update_friends_references(self, old_name, new_name):
         """ Updates all references of `old_name` in `friends` attributes of other monsters. """
         print(f"\n🔍 Scanning for references to '{old_name}' in other monsters...")
-        for monster in self.monsters.values():
+        for monster_name, monster in self.monsters.items():
             if "friends" in monster:
                 updated_friends = []
                 for friend in monster["friends"]:
                     parts = friend.split(":")
-                    if parts[-1] == old_name:  # ✅ Only update if the name was actually changed
+                    if parts[-1] == old_name:  
                         parts[-1] = new_name
-                        print(f"🔄 Updating friend reference: {friend} → {':'.join(parts)}")
+                        print(f"🔄 Updating friend reference in '{monster_name}': {friend} → {':'.join(parts)}")
                     updated_friends.append(":".join(parts))
-                monster["friends"] = updated_friends  # ✅ Save updated friend list
+                monster["friends"] = updated_friends  
 
     def save_monsters(self):
         """ Saves the modified monsters back to the file. """
@@ -101,7 +121,7 @@ class MonsterParser:
                         else:
                             file.write(f"{key}:{value}\n")
 
-                file.write("\n")
+                file.write("\n")  # ✅ Ensure proper spacing between monsters
 
         logging.info(f"✅ Changes saved to {self.filepath}")
         print(f"\n✅ Changes saved to {self.filepath}, and logged in logs/mfe_changes.log")

@@ -4,14 +4,18 @@ class GameDataLoader:
     def __init__(self, game_data_path):
         self.game_data_path = game_data_path
 
-        # Load flags from object_property.txt
-        self.valid_flags = self._load_flags_from_properties("object_property.txt")
+        # ✅ Load flags from multiple sources
+        self.valid_flags = self._load_flags_from_multiple_files([
+            "object_property.txt",
+            "object.txt",
+            "object_base.txt"
+        ])
 
-        # Load blows from blow_methods.txt and blow_effects.txt
+        # ✅ Load blow data
         self.blow_methods = self._load_data("blow_methods.txt")
         self.blow_effects = self._load_data("blow_effects.txt")
 
-        # Print loaded data for debugging
+        # ✅ Print loaded data for debugging
         print("\n=== Loaded Dependencies ===")
         print(f"Blow Methods ({len(self.blow_methods)}): {self.blow_methods}")
         print(f"Blow Effects ({len(self.blow_effects)}): {self.blow_effects}")
@@ -51,28 +55,40 @@ class GameDataLoader:
             print(f"❌ Error reading {filename}: {e}")
             return []
 
-    def _load_flags_from_properties(self, filename):
-        """ Extracts flag-like attributes from object_property.txt """
-        path = os.path.join(self.game_data_path, filename)
+    def _load_flags_from_multiple_files(self, filenames):
+        """ Extracts flag-like attributes from multiple files. """
+        flags = set()  # Use a set to avoid duplicates
 
-        print(f"Checking file: {path}")  # Debugging output
+        for filename in filenames:
+            path = os.path.join(self.game_data_path, filename)
+            print(f"Checking file: {path}")  # Debugging output
 
-        if not os.path.exists(path):
-            print(f"⚠️ Warning: {filename} not found! Using empty flags list.")
-            return []
+            if not os.path.exists(path):
+                print(f"⚠️ Warning: {filename} not found! Skipping.")
+                continue
 
-        flags = []
-        try:
-            with open(path, "r", encoding="utf-8") as file:
-                for line in file:
-                    line = line.strip()
+            try:
+                with open(path, "r", encoding="utf-8") as file:
+                    for line in file:
+                        line = line.strip()
 
-                    # Extract flag codes
-                    if line.startswith("code:"):
-                        flag_name = line.split(":", 1)[1].strip()
-                        flags.append(flag_name)
+                        # ✅ Extract flags from "code:" lines
+                        if line.startswith("code:"):
+                            flag_name = line.split(":", 1)[1].strip()
+                            flags.add(flag_name)
 
-        except Exception as e:
-            print(f"❌ Error reading {filename}: {e}")
-        
-        return flags
+                        # ✅ Extract flags from general key-value pairs
+                        elif ":" in line:
+                            key, value = line.split(":", 1)
+                            key = key.strip().lower()
+                            value = value.strip()
+
+                            # ✅ Consider only relevant keys
+                            if key in ["flags", "flag"]:
+                                for flag in value.split("|"):
+                                    flags.add(flag.strip())
+
+            except Exception as e:
+                print(f"❌ Error reading {filename}: {e}")
+
+        return sorted(flags)  # Convert back to sorted list for consistency
