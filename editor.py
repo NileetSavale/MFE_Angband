@@ -44,7 +44,7 @@ class MonsterEditor:
         if name not in self.monster_parser.monsters:
             print("❌ Monster not found!")
             return
-
+        
         while True:
             monster = self.monster_parser.monsters[name]
             print(f"\n=== Editing: {name} ===")
@@ -65,23 +65,26 @@ class MonsterEditor:
 
             # ✅ Allow renaming of monster
             if key == "name":
-                new_name = input(f"Enter new monster name (Current: '{monster['original_name']}', press Enter to keep): ").strip()
+                new_name = input(f"Enter new monster name (Current: '{name}', press Enter to keep): ").strip()
+
                 if new_name == "":
-                    print(f"🔄 Keeping old name: {monster['original_name']}")
+                    print(f"🔄 Keeping old name: {name}")
                 elif new_name in self.monster_parser.monsters:
                     print(f"❌ Error: A monster with name '{new_name}' already exists!")
                 else:
-                    success = self.monster_parser.rename_monster(monster["original_name"], new_name)
+                    success = self.monster_parser.rename_monster(name, new_name)
                     if success:
                         print(f"✅ Monster name changed to '{new_name}'!")
-                        name = new_name  # Update reference for further editing
-                continue
+                        name = new_name  # ✅ Update reference for further editing
+                        monster = self.monster_parser.monsters[name]  # ✅ Update monster reference
+                continue  # ✅ Ensures the loop continues instead of stopping
 
             if key not in monster:
                 print(f"❌ Invalid attribute '{key}'! Try again.")
                 continue  
 
             old_value_str = str(monster[key])
+
 
             # ✅ Handle numerical inputs properly
             if key in ["speed", "hit-points", "depth", "rarity", "experience", "armor-class"]:
@@ -172,7 +175,53 @@ class MonsterEditor:
                         new_power = input(f"Enter new power (Current: '{power}', press Enter to keep): ").strip() or power
                         blows[index] = f"{new_method}:{new_effect}:{new_power}" 
                         print(f"✅ Updated blow: {blows[index]}")
+                    elif choice == "2":
+                        if len(blows) >= 4:
+                            print("⚠️ You cannot add more than 4 blows.")
+                            continue
 
+                        new_method = input("Enter new blow method: ").strip()
+                        if new_method not in self.game_data_loader.blow_methods:
+                            suggestion = self.suggest_correction(new_method, self.game_data_loader.blow_methods)
+                            if suggestion:
+                                confirm = input(f"Did you mean '{suggestion}'? (Y/N): ").strip().lower()
+                                if confirm == "y":
+                                    new_method = suggestion
+                            else:
+                                print("⚠️ Invalid method, please enter a valid blow method.")
+                                continue
+
+                        new_effect = input("Enter new blow effect: ").strip()
+                        if new_effect not in self.game_data_loader.blow_effects:
+                            suggestion = self.suggest_correction(new_effect, self.game_data_loader.blow_effects)
+                            if suggestion:
+                                confirm = input(f"Did you mean '{suggestion}'? (Y/N): ").strip().lower()
+                                if confirm == "y":
+                                    new_effect = suggestion
+                            else:
+                                print("⚠️ Invalid effect, please enter a valid blow effect.")
+                                continue
+
+                        new_power = input("Enter new blow power: ").strip()
+                        blows.append(f"{new_method}:{new_effect}:{new_power}")
+                        print(f"✅ Added new blow: {new_method}:{new_effect}:{new_power}")
+
+                    elif choice == "3":
+                        if not blows:
+                            print("⚠️ No blows to remove.")
+                            continue
+
+                        print("\nSelect the blow to remove:")
+                        for i, blow in enumerate(blows, 1):
+                            print(f"{i}. {blow}")
+
+                        index = input("Enter blow number to remove: ").strip()
+                        if not index.isdigit() or int(index) < 1 or int(index) > len(blows):
+                            print("⚠️ Invalid selection!")
+                            continue
+
+                        removed_blow = blows.pop(int(index) - 1)
+                        print(f"✅ Removed blow: {removed_blow}")
                     elif choice == "4":
                         print("🔄 Exiting blow editing.")
                         break
