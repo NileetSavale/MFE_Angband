@@ -96,13 +96,3 @@ You want to change the color of the **"scruffy little dog"** because you want th
 
 This project is open-source. Feel free to modify and improve.
 
----
-
-## Contributors
-
-- TEAM 20 
-- Sierra Napieralski
-- Hannah Lengacher
-- Akhil Kashyap
-- Bryan Akin
-- Nileet Savale
